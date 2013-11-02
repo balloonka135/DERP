@@ -39,7 +39,6 @@ class FaceDetector:
     def find_faces(self, image):
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         gray_image = cv2.medianBlur(gray_image,5)
-        cv2.imshow('debug',gray_image)
         width, height = gray_image.shape[1], gray_image.shape[0]
 
         desired_width = 300.
