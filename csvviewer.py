@@ -1,21 +1,36 @@
+#! /usr/bin/env python
+# coding=utf-8
 import csv
 import cv2
 import numpy as np
 
-def main():
-    with open('../training.csv', 'rb') as pictures_file:
+def picture_iterator(path = './training.csv'):
+    with open(path, 'rb') as pictures_file:
         pictures = csv.DictReader(pictures_file)
         for picture in pictures:
-            picture = [int(x) for x in picture['Image'].split(' ')]
+
+            image = [int(x) for x in picture['Image'].split(' ')]
             #print len(picture)
-            picture = np.uint8(np.array(picture).reshape((96,96)))
-            cv2.imshow('e2', picture)
-            c = cv2.waitKey(1000)
-            if c== 1048603:
-                break
+            picture['Image']= np.uint8(np.array(image).reshape((96,96)))
+            yield  picture
 
 
     pass
 
 if __name__ == "__main__":
-    main()
+    with open('result.csv','w') as result_file:
+        dw = csv.DictWriter(result_file, ('emotion', 'number'))
+        pic_num = 0;
+        emotions = {'страх': 0, 'радость': 1, 'грусть': '3'}
+        for pic in picture_iterator():
+            cv2.imshow('e2', pic['Image'])
+            descriptor = {'number': pic_num}
+            descriptor['emotion'] = emotions['страх']
+            dw.writerow(descriptor)
+
+            c = cv2.waitKey(-1)
+            if c== 1048603:
+                break
+            pic_num+=1
+            if pic_num == 4:
+                break
