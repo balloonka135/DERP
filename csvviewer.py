@@ -42,23 +42,23 @@ if __name__ == "__main__":
         for em in emotions:
             print em,' => ', emotions[em]
 
-        pic_num = 360
+        pic_num = 621
         max_pic_num = 2500
         for pic in picture_iterator(start_at=pic_num):
             cv2.imshow('e2', pic['Image'])
             descriptor = {'number': pic_num}
             c = cv2.waitKey(-1)
-            if c == 27:
+            if c == 1048603:
                 break
             descriptor['emotion'] = {
-                ord('0'): 0, #0 - страх
-                ord('1'): 1, #1 - радость
-                ord('2'): 2, #2 - печаль
-                ord('3'): 3, #3 - гнев
-                ord('4'): 4, #4 - удивление
-                ord('5'): 5, #5 - отвращение
-                ord('6'): 6, #6 - удовольствие
-                ord('7'): 7  #7 - нейтральный
+                1048625: 0,#ord('0'): 0, #1 - страх
+                1048626: 1,#ord('1'): 1, #2 - радость
+                1048627: 2,#ord('2'): 2, #3 - печаль
+                1048628: 3,#ord('3'): 3, #4 - гнев
+                1048629: 4,#ord('4'): 4, #5 - удивление
+                1048630: 5,#ord('5'): 5, #6 - отвращение
+                1048631: 6,#ord('6'): 6, #7 - удовольствие
+                1048632: 7 #ord('7'): 7  #8 - нейтральный
             }[c]
 
             dw.writerow(descriptor)
