@@ -5,6 +5,8 @@ import csv
 import cv2
 import numpy as np
 
+import config
+
 
 def picture_iterator(path='training.csv', start_at=0, end_at=-1):
     with open(path, 'rb') as pictures_file:
@@ -38,8 +40,8 @@ if __name__ == "__main__":
         for em, key in emotions:
             print em, ' => ', key
 
-        start = 2001
-        end = 2005
+        start = config.START
+        end = config.END
         pic_num = start
         for pic in picture_iterator(start_at=start, end_at=end):
             copy = np.zeros((96, 192), dtype=np.uint8)
