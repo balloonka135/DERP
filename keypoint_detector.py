@@ -6,11 +6,11 @@ import numpy as np
 CAMERA_INDEX = 0
 
 #загружаем обученный датасеты
-cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
-cascade_leyes = cv2.CascadeClassifier("haarcascade_mcs_lefteye.xml")
-cascade_reyes = cv2.CascadeClassifier("haarcascade_mcs_righteye.xml")
-cascade_mouth = cv2.CascadeClassifier("Mouth.xml")
-cascade_nose = cv2.CascadeClassifier("haarcascade_mcs_nose.xml")
+cascade = cv2.CascadeClassifier("Data/haarcascade_frontalface_default.xml")
+cascade_leyes = cv2.CascadeClassifier("Data/haarcascade_mcs_lefteye.xml")
+cascade_reyes = cv2.CascadeClassifier("Data/haarcascade_mcs_righteye.xml")
+cascade_mouth = cv2.CascadeClassifier("Data/Mouth.xml")
+cascade_nose = cv2.CascadeClassifier("Data/haarcascade_mcs_nose.xml")
 
 
 #ищем лица
