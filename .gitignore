@@ -1,2 +1,5 @@
 .idea
 Data/fddb
+*.pyc
+training.csv
+result.csv
