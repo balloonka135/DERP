@@ -26,7 +26,7 @@ if __name__ == "__main__":
         cv2.imshow('img',pic['Image'])
         cv2.waitKey(1000)
     """
-    with open('result.csv','w') as result_file:
+    with open('result.csv','a') as result_file:
         dw = csv.DictWriter(result_file, ('emotion', 'number'))
         pic_num = 0;
 
@@ -34,6 +34,9 @@ if __name__ == "__main__":
         for em in emotions:
             print em,' => ', emotions[em]
         for pic in picture_iterator():
+            if (pic_num < 89):
+                pic_num += 1
+                continue
             cv2.imshow('e2', pic['Image'])
             descriptor = {'number': pic_num}
             c = cv2.waitKey(-1)
@@ -50,3 +53,5 @@ if __name__ == "__main__":
             }[c]
             dw.writerow(descriptor)
             pic_num+=1
+            if pic_num == 3500:
+                break
