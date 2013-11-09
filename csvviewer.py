@@ -6,50 +6,59 @@ import cv2
 import numpy as np
 
 
-def picture_iterator(path='training.csv', start_at = 0):
+def picture_iterator(path='training.csv', start_at=0, end_at=-1):
     with open(path, 'rb') as pictures_file:
         pictures = csv.DictReader(pictures_file)
         for i, picture in enumerate(pictures):
             if i < start_at:
                 continue
 
+            if end_at != -1 and i > end_at:
+                raise StopIteration()
+
             image = [int(x) for x in picture['Image'].split(' ')]
             picture['Image'] = np.uint8(np.array(image).reshape((96, 96)))
             yield picture
 
 if __name__ == "__main__":
-    """
-    for pic in picture_iterator():
-        for dot in pic.keys():
-            if dot != 'Image':
-                cv2.circle(pic['Image'], (int(float(pic[ dot[:-1]+'x'])),int(float(pic[ dot[:-1]+'y']))),2,(255,) )
-        cv2.imshow('img',pic['Image'])
-        cv2.waitKey(1000)
-    """
-    with open('result.csv','a') as result_file:
+    window = 'emotion tag'
+    cv2.namedWindow(window, cv2.WINDOW_AUTOSIZE)
+    with open('result.csv', 'ab') as result_file:
         dw = csv.DictWriter(result_file, ('emotion', 'number'))
 
+        emotions = [('Страх', 0),
+                    ('Радость', 1),
+                    ('Печаль', 2),
+                    ('Гнев', 3),
+                    ('Удивление', 4),
+                    ('Отвращение', 5),
+                    ('Удовольствие', 6),
+                    ('Нейтральный', 7)]
 
-        emotions = {'Страх': 0,
-                    'Радость': 1,
-                    'Печаль': 2,
-                    'Гнев': 3,
-                    'Удивление': 4,
-                    'Отвращение': 5,
-                    'Удовольствие': 6,
-                    'Нейтральный': 7}
+        for em, key in emotions:
+            print em, ' => ', key
 
-        for em in emotions:
-            print em,' => ', emotions[em]
+        start = 2001
+        end = 2005
+        pic_num = start
+        for pic in picture_iterator(start_at=start, end_at=end):
+            copy = np.zeros((96, 192), dtype=np.uint8)
+            copy[:, :96] = pic['Image'][:, :]
 
-        pic_num = 360
-        max_pic_num = 2500
-        for pic in picture_iterator(start_at=pic_num):
-            cv2.imshow('e2', pic['Image'])
+            cv2.putText(img=copy,
+                        text=str(pic_num),
+                        org=(96, 48),
+                        fontFace=cv2.FONT_HERSHEY_COMPLEX,
+                        fontScale=0.8,
+                        color=(255, 255, 255))
+
+            cv2.imshow(window, copy)
+
             descriptor = {'number': pic_num}
             c = cv2.waitKey(-1)
             if c == 27:
                 break
+
             descriptor['emotion'] = {
                 ord('0'): 0, #0 - страх
                 ord('1'): 1, #1 - радость
@@ -62,6 +71,4 @@ if __name__ == "__main__":
             }[c]
 
             dw.writerow(descriptor)
-            if pic_num == max_pic_num:
-                break
             pic_num += 1
