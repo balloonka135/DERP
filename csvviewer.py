@@ -41,7 +41,6 @@ if __name__ == "__main__":
 
         for em in emotions:
             print em,' => ', emotions[em]
-
         pic_num = 621
         max_pic_num = 2500
         for pic in picture_iterator(start_at=pic_num):
