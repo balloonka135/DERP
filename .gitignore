@@ -1,5 +1,6 @@
 .idea
 Data/fddb
+Data/muct
 training.csv
 result.csv
 config.py
