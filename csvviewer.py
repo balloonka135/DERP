@@ -22,6 +22,28 @@ def picture_iterator(path='training.csv', start_at=0, end_at=-1):
             picture['Image'] = np.uint8(np.array(image).reshape((96, 96)))
             yield picture
 
+def picture_dot_iterator(path='training.csv', start_at=0, end_at=-1, only_full=True, dots= None):
+    with open(path, 'rb') as pictures_file:
+        pictures = csv.DictReader(pictures_file)
+
+        if dots != None:
+            dots.extend(list(pictures.fieldnames))
+            del dots[dots.index('Image')]
+        for i, picture in enumerate(pictures):
+            if i < start_at:
+                continue
+
+            if end_at != -1 and i > end_at:
+                raise StopIteration()
+
+            if only_full:
+                if '' in picture.values():
+                    continue
+            del picture['Image']
+            picture['number'] = str(i)
+            yield picture
+
+
 if __name__ == "__main__":
     window = 'emotion tag'
     cv2.namedWindow(window, cv2.WINDOW_AUTOSIZE)
