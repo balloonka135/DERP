@@ -8,9 +8,24 @@ import numpy as np
 import config
 
 
+class picture_collection:
+    def __init__(self,path='training.csv',):
+        self.collection = []
+        self.path = path
+
+    def __getitem__(self, item):
+        if (item < len(self.collection)):
+            return self.collection[item]
+        else:
+            start = len(self.collection)
+            for pic in picture_iterator(self.path, start, item+1):
+                self.collection.append(pic)
+            return self.collection[item]
+
 def picture_iterator(path='training.csv', start_at=0, end_at=-1):
     with open(path, 'rb') as pictures_file:
         pictures = csv.DictReader(pictures_file)
+
         for i, picture in enumerate(pictures):
             if i < start_at:
                 continue
@@ -27,8 +42,10 @@ def picture_dot_iterator(path='training.csv', start_at=0, end_at=-1, only_full=T
         pictures = csv.DictReader(pictures_file)
 
         if dots != None:
-            dots.extend(list(pictures.fieldnames))
-            del dots[dots.index('Image')]
+            all_dots = list(pictures.fieldnames)
+            del all_dots[all_dots.index('Image')]
+            dots.extend([ (dot1,dot2) for dot1 in all_dots for dot2 in all_dots
+                          if dot2[:-1]==dot1[:-1] and dot1[-1] == 'x' and dot2[-1]=='y' ])
         for i, picture in enumerate(pictures):
             if i < start_at:
                 continue

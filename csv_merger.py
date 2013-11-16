@@ -8,6 +8,21 @@ import math
 from os import listdir
 from os.path import isfile, join
 
+def distance(dot1,dot2, dots_dict):
+    return math.sqrt((float(dots_dict[dot1[0]]) - float(dots_dict[dot2[0]]))**2
+              + (float(dots_dict[dot1[1]]) - float(dots_dict[dot2[1]]))**2)
+
+def count_distances(dots_dict, dots):
+    norm_dot1 = ('left_eye_outer_corner_x', 'left_eye_outer_corner_y')
+    norm_dot2 = ('right_eye_outer_corner_x', 'right_eye_outer_corner_y')
+    norm = distance(norm_dot1, norm_dot2, dots_dict)
+    distances = []
+    for dot_idx,dot1 in enumerate(dots[:-1]):
+        for dot2 in dots[dot_idx+1:]:
+            distances.append(str(distance(dot1,dot2,dots_dict)/norm))
+    return distances
+
+
 def most_common(L):
   groups = itertools.groupby(sorted(L))
   def _auxfun((item, iterable)):
@@ -53,15 +68,8 @@ def csv_merger(path_to_results = "../"):
             dots = []
             pic_iterator = csvviewer.picture_dot_iterator(path=join(path_to_results,'training.csv'),dots = dots)
             try:
-                def distance(dot1,dot2, dots_dict):
-                    return math.sqrt((float(dots_dict[dot1[0]]) - float(dots_dict[dot2[0]]))**2
-                              + (float(dots_dict[dot1[1]]) - float(dots_dict[dot2[1]]))**2)
                 emotion = emotions_iterator.next()
                 pic = pic_iterator.next()
-                #prepare dots descriptions:
-                dots = [ (dot1,dot2) for dot1 in dots for dot2 in dots if dot2[:-1]==dot1[:-1] and dot1[-1] == 'x' and dot2[-1]=='y' ]
-                norm_dot1 = ('left_eye_outer_corner_x', 'left_eye_outer_corner_y')
-                norm_dot2 = ('right_eye_outer_corner_x', 'right_eye_outer_corner_y')
                 while True:
                     if int(emotion['number']) > int(pic['number']):
                         pic = pic_iterator.next()
@@ -69,11 +77,7 @@ def csv_merger(path_to_results = "../"):
                         emotion = emotions_iterator.next()
                     else:
                         print ("Currently processing picture number: "+ pic["number"])
-                        distances  = []
-                        norm = distance(norm_dot1, norm_dot2, pic)
-                        for dot_idx,dot1 in enumerate(dots[:-1]):
-                            for dot2 in dots[dot_idx+1:]:
-                                distances.append(str(distance(dot1,dot2,pic)/norm))
+                        distances  = count_distances(pic, dots)
                         #try:
                         line = [emotion['number'],emotion['emotion']]
                         line.extend(distances)
