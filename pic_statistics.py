@@ -1,14 +1,12 @@
 #! /usr/bin/env python
 # coding=utf-8
 
-import csvviewer
+import picture_iterator as p_iter
 import cv2
 import numpy as np
 
-
-
-def find_similar(path_to_data="../merged_data.csv"):
-    p_collection = csvviewer.picture_collection('../training.csv')
+def find_similar(path_to_data="Data/dataset/merged_data.csv"):
+    p_collection = p_iter.PictureCollection()
     with open(path_to_data, 'r') as data_file:
         data_lines = data_file.readlines()
         for data_idx, data_line in enumerate(data_lines[:-1]):
@@ -19,12 +17,12 @@ def find_similar(path_to_data="../merged_data.csv"):
                 data2_line = data2_line.split(',')
                 b = np.array([float(x) for x in data2_line[2:]])
                 dist = np.linalg.norm(a-b)
-                if  dist < 0.15:
+                if dist < 0.15:
                     print (dist)
                     copy = np.zeros((96, 192), dtype=np.uint8)
-                    copy[:, :96] = p_collection[int(data_line[0])]['Image'][:, :]
-                    copy[:, 96:] = p_collection[int(data2_line[0])]['Image'][:, :]
-                    cv2.imshow("asfd",copy)
+                    copy[:, :96] = p_collection[int(data_line[0])]['Image']
+                    copy[:, 96:] = p_collection[int(data2_line[0])]['Image']
+                    cv2.imshow("asfd", copy)
                     cv2.waitKey(-1)
 
 
