@@ -3,12 +3,13 @@
 
 import cv2
 import numpy as np
-import csvviewer
+import picture_iterator
 import csv_merger
 
-def train(data_path='Data/merged_data.csv', emotion=1):
+
+def train(data_path='Data/dataset/merged_data.csv', emotion=1):
     data = []
-    with open(data_path,'r') as data_file:
+    with open(data_path, 'r') as data_file:
         for data_line in data_file:
             data.append([float(value) for value in data_line.split(',')])
     data = np.float32(np.array(data))
@@ -24,11 +25,11 @@ def classify(path_to_classifier_xml = "Data/boost_emotions_classifier.xml",show_
     booster = cv2.Boost()
     booster.load(path_to_classifier_xml)
 
-    picture_collection = csvviewer.picture_collection(path='../training.csv')
-    dots = []
-    pic_iterator = csvviewer.picture_dot_iterator(path='../training.csv',dots=dots)
-    for pic in pic_iterator:
-        distances  = csv_merger.count_distances(pic,dots)
+    picture_collection = picture_iterator.PictureCollection()
+    keypoints = picture_collection.key_points
+
+    for pic in picture_collection:
+        distances = csv_merger.count_distances(pic, keypoints)
         distances = np.float32(np.array(distances))
         result = booster.predict(distances)
         copy = np.zeros((96, 192), dtype=np.uint8)
