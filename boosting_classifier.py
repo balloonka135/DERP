@@ -16,7 +16,7 @@ def train(data_path='Data/merged_data.csv', emotion=1):
     smile_responses = np.float32(np.array(smile_responses))
     print data[:,1].shape
     booster = cv2.Boost(trainData=data[:, 2:],tflag=cv2.CV_ROW_SAMPLE, responses=smile_responses)
-    booster.train(data[:,2:],tflag=cv2.CV_ROW_SAMPLE, responses=smile_responses)
+    booster.train(data[:,2:],tflag=cv2.CV_ROW_SAMPLE, responses=smile_responses, params= {'asdf':1})
     booster.save("Data/boost_emotions_classifier.xml")
 
 
