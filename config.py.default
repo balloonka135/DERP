@@ -1,5 +1,4 @@
-START = 2001
-END = 3000
+#KEY CODES
 KEY_CODE_ESC = 27
 KEY_CODE_0 = ord('0')
 KEY_CODE_1 = ord('1')
@@ -11,3 +10,9 @@ KEY_CODE_6 = ord('6')
 KEY_CODE_7 = ord('7')
 KEY_CODE_8 = ord('8')
 
+
+
+
+#MISC
+START = 2001
+END = 3000
