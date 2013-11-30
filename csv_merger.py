@@ -7,6 +7,23 @@ import itertools
 import math
 from os import listdir
 from os.path import isfile, join
+import random
+
+
+def split_merged_data(path="Data/dataset/merged_data.csv"):
+    random.seed()
+    with open("merged_data_train.csv", 'w') as train_file:
+        with open("merged_data_test.csv", 'w') as test_file:
+            with open('merged_data_val.csv', 'w') as val_file:
+                with open(path, 'r') as data:
+                    for line in data:
+                        a = random.random()
+                        if a < 0.6:
+                            train_file.write(line)
+                        elif a < 0.8:
+                            val_file.write(line)
+                        else:
+                            test_file.write(line)
 
 def distance(dot1,dot2, dots_dict):
     return math.sqrt((float(dots_dict[dot1[0]]) - float(dots_dict[dot2[0]]))**2
@@ -89,6 +106,7 @@ def csv_merger(path_to_results = "../"):
                         emotion = emotions_iterator.next()
             except StopIteration:
                 pass
+    split_merged_data(join(path_to_results,'merged_data.csv'))
 
 
 
