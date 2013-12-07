@@ -105,7 +105,7 @@ class SVMTrainer(object):
             if not os.path.exists(config.SVM_CLF_DIR):
 	            os.makedirs(config.SVM_CLF_DIR)
 
-            output_clf = open(config.SVM_CLF_PATH, "wb")
+            output_clf = open(config.SVM_CLF_DIR+"/trained_classifier.pkl", "wb")
             cpkl.dump(self.classifier, output_clf)
             output_clf.close()
         else:
