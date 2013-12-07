@@ -15,8 +15,8 @@ test_objects = reader.get_objects()
 test_classes = reader.get_classes()
 
 for i in range(len(test_objects)):
-    print("real class:%d, predicted class:%d\n"% test_classes[i], clf.predict(test_objects[i]))
+    print("real class:%d, predicted class:%d\n"%(test_classes[i], clf.predict(test_objects[i])))
+
+print(clf.score(test_objects,test_classes))
 
 input_clf.close()
-input_obj.close()
-input_cls.close()
