@@ -1,7 +1,6 @@
 #!/usr/bin/python
 #coding=utf-8
 
-import csv
 import cv2
 from sklearn import svm
 from sklearn.grid_search import GridSearchCV
@@ -9,47 +8,38 @@ from sklearn.metrics import classification_report
 from sklearn import cross_validation as val
 import numpy
 import cPickle as cpkl
-import math
 import matplotlib
 from data_reader import DataReader
+import config
 import os
-import shutil
-import glob
 
-FEARNESS = 0 #страх
-JOYNESS = 1 #радость
-MADNESS = 2 #печаль
-ANGER = 3 #гнев
-SURPRISE = 4 #удивлениe
-DISGUST = 5 #отвращение
-PLEASURE = 6 #удовольствие
-NEUTRAL = 7 #нейтральный
-
-# В качестве объекта берутся расстояния между ключевыми точками на изображении
-#Классы от 0 до 7
-classes = []
-objects = []
-# Данные для кроссвалидации
-val_classes = []
-val_objects = []
-# Данные для тестирования
-test_classes = []
-test_objects = []
-
-train_data_path = "./Data/dataset/merged_data_train.csv"
-val_data_path = "./Data/dataset/merged_data_val.csv"
-test_data_path = "./Data/dataset/merged_data_test.csv"
+## Главным классфикатором является классификатор clf
+## для тестирования есть classifier (см. метод train)
 
 class SVMTrainer(object):
-    def __init__(self, clf, X_train, Y_train, X_val, Y_val):
-        self.X_train = X_train
-        self.Y_train = Y_train
-        self.X_val = X_val
-        self.Y_val = Y_val
-        self.clf = clf
+    def __init__(self, train_data_path, val_data_path):
+        self.tpath = train_data_path
+        self.vpath = val_data_path
+
+    def read_data(self):
+        if hasattr(self, "X_train")\
+            and hasattr(self, "Y_train")\
+            and hasattr(self, "X_test")\
+            and hasattr(self, "Y_test"):
+                return [(self.X_train, self.X_val), (self.Y_train, self.Y_val)]
+
+        train_data_reader = DataReader(self.tpath)
+        val_data_reader = DataReader(self.vpath)
+        self.X_train, self.X_val = train_data_reader.get_objects(), val_data_reader.get_objects()
+        self.Y_train, self.Y_val = train_data_reader.get_classes(), val_data_reader.get_classes()
+
+        return [(self.X_train, self.X_val), (self.Y_train, self.Y_val)]
 
     ##оптимизация классификатора
-    def eval_estimator(self, X_train, Y_train, X_val, Y_val):
+    def eval_estimator(self):
+        if hasattr(self, "classification_rep"):
+            return self.classification_rep
+
         ### tuned parameters
         C = [i for i in range(1, 100)]
         intercept_scaling=[i for i in range (1, 10)]
@@ -61,6 +51,7 @@ class SVMTrainer(object):
                        'dual':[False, True]}]
         cv=5
 
+        ##evaluated scores
         scores = ['accuracy',
                   'average_precision',
                   'precision',
@@ -70,40 +61,62 @@ class SVMTrainer(object):
 
         for score in scores:
             print("Tuning hyper-parameters for {0}\n".format(score))
-            clf=GridSearchCV(svm.LinearSVC(), parameters, cv=cv, scoring=score)
-            clf.fit(objects, classes)
+            self.clf=GridSearchCV(svm.LinearSVC(), parameters, cv=cv, scoring=score)
+            self.clf.fit(self.X_train, self.Y_train)
 
-            print("Best parameters (with train set:\n")
-            print(clf.best_estimator_)
+            print("Best parameters (with train set):\n")
+            print(self.clf.best_estimator_)
             print("Grid scores (with train set):\n")
-            for params, mean_score, scores in clf.grid_scores_:
+            for params, mean_score, scores in self.clf.grid_scores_:
                 print("%0.5f (+/-%0.05f) for %r"
                       % (mean_score, scores.std() / 2, params))
             print("Detailed classification report:\n")
             print("The model is trained on the full train set.\n")
             print("The scores are computed on the full validation set.\n")
             print("\n")
-            real_classes, pred_classes = val_classes, clf.predict(val_objects)
-            return classification_report(real_classes, pred_classes)
+            real_classes, pred_classes = self.Y_val, self.clf.predict(self.X_val)
+            self.classification_rep = classification_report(real_classes, pred_classes)
+            return self.classification_rep
 
-#Читаем все необходимые данные
-train_data_reader = DataReader(train_data_path)
-classes = train_data_reader.get_classes()
-objects = train_data_reader.get_objects()
+    #Этот метод будет не нужен в последствии
+    #Так как после подгонки параметров классификатор будет натренирован
+    def train(self):
+        if hasattr(self, 'classifier'):
+            return self.classifier
+        ## Параметры получены ранее после оптимизации
+        self.classifier = svm.LinearSVC(C=7,
+                                   class_weight=None,
+                                   dual=True,
+                                   fit_intercept=True,
+                                   intercept_scaling=1,
+                                   loss='l2',
+                                   multi_class='ovr',
+                                   penalty='l2',
+                                   random_state=None,
+                                   tol=0.0001,
+                                   verbose=0)
+        self.classifier.fit(self.X_train,self.Y_train)
+        return self.classifier
 
-cv_data_reader=DataMaker(val_data_path)
-val_classes = cv_data_reader.get_classes()
-val_objects = cv_data_reader.get_objects()
+    def dump_classifier(self):
+         ## после оптимизации параметров поменять на
+        ##if (hasattr(self,clf)):
+        if (hasattr(self,'classifier')):
+            if not os.path.exists(config.SVM_CLF_DIR):
+	            os.makedirs(config.SVM_CLF_DIR)
 
-test_data_reader = DataMaker(test_data_path)
-test_classes = test_data_reader.get_classes()
-test_objects = test_data_reader.get_objects()
+            output_clf = open(config.SVM_CLF_PATH, "wb")
+            cpkl.dump(self.classifier, output_clf)
+            output_clf.close()
+        else:
+            print("dump_classifier : train classifier first\n")
 
-#for binary classification joy and non joy classes
-#joy_cls = [1 if i == 1 else 0 for i in classes]
+if __name__ == '__main__':
+    svm_obj = SVMTrainer(config.TRAIN_DATA_PATH, config.VAL_DATA_PATH)
+    svm_obj.read_data()
+    svm_obj.train()
+    svm_obj.dump_classifier()
 
-clf = svm.LinearSVC()
-#clf.fit(objects, classes)
 #print("error percentage (underfitting check)\n:{0}%".format((1.0-clf.score(objects, classes))*100.))
 #print("error percentage (overfitting check)\n:{0}%".format((1.0-clf.score(test_objects, test_classes))*100.))
 

@@ -7,6 +7,13 @@ DATA_DIR = os.path.join(BASE_DIR, 'Data')
 
 CASCADES_DIR = os.path.join(DATA_DIR, 'haarcascade')
 
+TRAIN_DATA_PATH = os.path.join(DATA_DIR, "dataset/merged_data_train.csv")
+VAL_DATA_PATH = os.path.join(DATA_DIR, "dataset/merged_data_val.csv")
+TEST_DATA_PATH = os.path.join(DATA_DIR, "dataset/merged_data_test.csv")
+
+SVM_CLF_DIR = os.path.join(DATA_DIR,'trained_svm_data')
+SVM_CLF_PATH = os.path.join(SVM_CLF_DIR, 'trained_classifier.pkl')
+
 #KEY CODES
 KEY_CODE_ESC = 27
 KEY_CODE_0 = ord('0')
@@ -18,6 +25,15 @@ KEY_CODE_5 = ord('5')
 KEY_CODE_6 = ord('6')
 KEY_CODE_7 = ord('7')
 KEY_CODE_8 = ord('8')
+
+FEARNESS = 0
+JOYNESS = 1
+MADNESS = 2
+ANGER = 3
+SURPRISE = 4
+DISGUST = 5
+PLEASURE = 6
+NEUTRAL = 7
 
 #MISC
 START = 2001
