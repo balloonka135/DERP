@@ -19,7 +19,7 @@ classes = cpkl.load(input_cls)
 #print("real emotion: {0}".format(classes[2104]))
 
 #result = classifier.predict(objects[2104])
-
+test_data_path = "./Data/dataset/merged_data_test.csv"
 '''
 if result == 1:
 	print "joyness"
