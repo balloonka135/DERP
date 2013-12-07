@@ -49,6 +49,7 @@ class PictureCollection:
                 raise StopIteration
 
             if self.filter_partial_descs and '' in picture.values():
+                self.image_iterator_pointer += 1
                 continue
 
             picture['number'] = self.image_iterator_pointer

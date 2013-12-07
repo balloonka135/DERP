@@ -5,3 +5,4 @@ training.csv
 result.csv
 config.py
 *.pyc
+Data/dataset/moar.csv

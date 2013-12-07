@@ -25,20 +25,36 @@ def split_merged_data(path="Data/dataset/merged_data.csv"):
                         else:
                             test_file.write(line)
 
-def distance(dot1,dot2, dots_dict):
-    return math.sqrt((float(dots_dict[dot1[0]]) - float(dots_dict[dot2[0]]))**2
-              + (float(dots_dict[dot1[1]]) - float(dots_dict[dot2[1]]))**2)
 
-def count_distances(dots_dict, dots):
-    norm_dot1 = ('left_eye_outer_corner_x', 'left_eye_outer_corner_y')
-    norm_dot2 = ('right_eye_outer_corner_x', 'right_eye_outer_corner_y')
-    norm = distance(norm_dot1, norm_dot2, dots_dict)
+def distance(dot1,dot2):
+    return math.sqrt((float(dot1[0]) - float(dot2[0]))**2
+              + (float(dot1[1]) - float(dot2[1]))**2)
+
+
+def group_points(keypoint_data, keypoint_names):
+    points = [(keypoint_data['left_eye_outer_corner_x'], keypoint_data['left_eye_outer_corner_y']),
+              (keypoint_data['right_eye_outer_corner_x'], keypoint_data['right_eye_outer_corner_y'])]
+    for keyp in keypoint_names:
+        if 'eye_outer_corner' in keyp[0]:
+            continue
+        points.append((keypoint_data[keyp[0]], keypoint_data[keyp[1]]))
+    return points
+
+
+def count_distances(points):
     distances = []
-    for dot_idx,dot1 in enumerate(dots[:-1]):
-        for dot2 in dots[dot_idx+1:]:
-            distances.append(str(distance(dot1,dot2,dots_dict)/norm))
+    norm = distance(points[0], points[1])
+    for dot_idx, dot1 in enumerate(points[:-1]):
+        for dot2 in points[dot_idx+1:]:
+            distances.append((distance(dot1,dot2)/norm))
     return distances
 
+def make_line(distances, emotion, number):
+    distances = [str(i) for i in distances]
+    result_line = [str(number), str(emotion)]
+    result_line.extend(distances)
+    result_line = ', '.join(result_line)
+    return result_line
 
 def most_common(L):
   groups = itertools.groupby(sorted(L))
@@ -94,13 +110,10 @@ def csv_merger(path_to_results = "../"):
                     elif int(emotion['number']) < int(pic['number']):
                         emotion = emotions_iterator.next()
                     else:
-                        print ("Currently processing picture number: "+ pic["number"])
-                        distances  = count_distances(pic, dots)
-                        #try:
-                        line = [emotion['number'],emotion['emotion']]
-                        line.extend(distances)
+                        print ("Currently processing picture number: "+ str(pic["number"]))
+                        grouped_p = group_points(pic, dots)
+                        result_line = make_line(count_distances(grouped_p), emotion['number'], emotion['emotion'])
 
-                        result_line = ', '.join(line)
                         merged_data.write(result_line+'\n')
 
                         pic = pic_iterator.next()
