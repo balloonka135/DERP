@@ -116,9 +116,3 @@ if __name__ == '__main__':
     svm_obj.train()
     svm_obj.dump_classifier()
 
-#print("error percentage (underfitting check)\n:{0}%".format((1.0-clf.score(objects, classes))*100.))
-#print("error percentage (overfitting check)\n:{0}%".format((1.0-clf.score(test_objects, test_classes))*100.))
-
-
-
-
