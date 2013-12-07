@@ -15,17 +15,22 @@ class DataReader(object):
                 yield data
 
     def get_classes(self):
-        train_classes = []
-        for data in self.read_generator():
-            train_classes.append(int(data[1]))
-        return train_classes
+        if hasattr(self, "train_classes"):
+            return self.train_classes
+        else:
+            self.train_classes = []
+            for data in self.read_generator():
+                self.train_classes.append(int(data[1]))
+            return self.train_classes
 
     def get_objects(self):
-        train_objects = []
+        if hasattr(self, "train_objects"):
+            return self.train_objects
+        self.train_objects = []
         temp = []
         for data in self.read_generator():
             temp=[float(i) for i in data[2:107]]
-            train_objects.append(temp)
+            self.train_objects.append(temp)
             temp = list()
-        return train_objects
+        return self.train_objects
 
