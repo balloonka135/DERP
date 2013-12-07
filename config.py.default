@@ -12,7 +12,6 @@ VAL_DATA_PATH = os.path.join(DATA_DIR, "dataset/merged_data_val.csv")
 TEST_DATA_PATH = os.path.join(DATA_DIR, "dataset/merged_data_test.csv")
 
 SVM_CLF_DIR = os.path.join(DATA_DIR,'trained_svm_data')
-SVM_CLF_PATH = os.path.join(SVM_CLF_DIR, 'trained_classifier.pkl')
 
 #KEY CODES
 KEY_CODE_ESC = 27
