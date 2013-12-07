@@ -49,9 +49,9 @@ def train_classifier(path_to_classifier_xml="Data/boost_emotions_classifier.xml"
     smile_responses = [1 if value == emotion else 0 for value in data[:, 1]]
     smile_responses = np.float32(np.array(smile_responses))
 
-    params = dict(max_depth=10,
+    params = dict(max_depth=5,
                   boost_type=cv2.BOOST_LOGIT,
-                  weak_count=1000,
+                  weak_count=300,
                   #weight_trim_rate=0.01,
                   use_surrogates=True,
                   priors=0
@@ -110,5 +110,5 @@ def classify_and_show(path_to_classifier_xml="Data/boost_emotions_classifier.xml
 
 
 if __name__ == "__main__":
-    #train(emotion=1)
-    classify(emotion = 1)
+    train_classifier(emotion=1)
+    test_classifier(emotion = 1)
