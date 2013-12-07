@@ -25,7 +25,6 @@ def split_merged_data(path="Data/dataset/merged_data.csv"):
                         else:
                             test_file.write(line)
 
-
 def distance(dot1,dot2):
     return math.sqrt((float(dot1[0]) - float(dot2[0]))**2
               + (float(dot1[1]) - float(dot2[1]))**2)
@@ -55,6 +54,7 @@ def make_line(distances, emotion, number):
     result_line.extend(distances)
     result_line = ', '.join(result_line)
     return result_line
+
 
 def most_common(L):
   groups = itertools.groupby(sorted(L))
@@ -110,6 +110,7 @@ def csv_merger(path_to_results = "../"):
                     elif int(emotion['number']) < int(pic['number']):
                         emotion = emotions_iterator.next()
                     else:
+
                         print ("Currently processing picture number: "+ str(pic["number"]))
                         grouped_p = group_points(pic, dots)
                         result_line = make_line(count_distances(grouped_p), emotion['number'], emotion['emotion'])
