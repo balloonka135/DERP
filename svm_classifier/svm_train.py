@@ -1,7 +1,6 @@
 #!/usr/bin/python
 #coding=utf-8
 
-import cv2
 from sklearn import svm
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import classification_report
