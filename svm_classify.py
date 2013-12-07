@@ -18,7 +18,7 @@ classes = cpkl.load(input_cls)
 #print("predicted data:{0}".format(classifier.predict(objects[2104])))
 #print("real emotion: {0}".format(classes[2104]))
 
-result = classifier.predict(objects[2104])
+#result = classifier.predict(objects[2104])
 
 '''
 if result == 1:
