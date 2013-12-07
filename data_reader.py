@@ -24,7 +24,7 @@ class DataReader(object):
         train_objects = []
         temp = []
         for data in self.read_generator():
-            temp=data[2:107]
+            temp=[float(i) for i in data[2:107]]
             train_objects.append(temp)
             temp = list()
         return train_objects

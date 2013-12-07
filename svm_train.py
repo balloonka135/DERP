@@ -11,6 +11,7 @@ import numpy
 import cPickle as cpkl
 import math
 import matplotlib
+from data_reader import DataReader
 import os
 import shutil
 import glob
@@ -39,9 +40,6 @@ train_data_path = "./Data/dataset/merged_data_train.csv"
 val_data_path = "./Data/dataset/merged_data_val.csv"
 test_data_path = "./Data/dataset/merged_data_test.csv"
 
-
-
-
 class SVMTrainer(object):
     def __init__(self, clf, X_train, Y_train, X_val, Y_val):
         self.X_train = X_train
@@ -49,41 +47,47 @@ class SVMTrainer(object):
         self.X_val = X_val
         self.Y_val = Y_val
         self.clf = clf
-##оптимизация классификатора
-def eval_estimator(self, X_train, Y_train, X_val, Y_val):
-    #### tuned parameters
-    self.C = [i for i in range(1, 100)]
-    self.intercept_scaling=[i for i in range (1, 10)]
-    self.tol = [0.001, 0.00001]#, 0.00001, 0.00001]
-    self.parameters = [{'C':self.C,
-              'class_weight':['auto', None],
-              'intercept_scaling':self.intercept_scaling,
-              'tol':self.tol,
-              'dual':[False, True]}]
-    ####
 
-    self.scores = ['precision']##['accuracy', 'average_precision', 'precision', 'recall', 'f1', 'roc_auc']
-    for score in self.scores:
-        print("Tuning hyper-parameters for {0}\n".format(score))
-        clf=GridSearchCV(svm.LinearSVC(), parameters, cv=cv, scoring=score)
-        clf.fit(objects, classes)
+    ##оптимизация классификатора
+    def eval_estimator(self, X_train, Y_train, X_val, Y_val):
+        ### tuned parameters
+        C = [i for i in range(1, 100)]
+        intercept_scaling=[i for i in range (1, 10)]
+        tol = [0.001, 0.00001, 0.00001, 0.00001]
+        parameters = [{'C':self.C,
+                       'class_weight':['auto', None],
+                       'intercept_scaling':intercept_scaling,
+                       'tol':self.tol,
+                       'dual':[False, True]}]
+        cv=5
 
-        print("Best parameters (with train set:\n")
-        print(clf.best_estimator_)
-        print("Grid scores (with train set):\n")
-        for params, mean_score, scores in clf.grid_scores_:
-            print("%0.5f (+/-%0.05f) for %r"
-                  % (mean_score, scores.std() / 2, params))
-        print("Detailed classification report:\n")
-        print("The model is trained on the full train set.\n")
-        print("The scores are computed on the full validation set.\n")
-        print("\n")
-        real_classes, pred_classes = val_classes, clf.predict(val_objects)
-        print(classification_report(real_classes, pred_classes))
+        scores = ['accuracy',
+                  'average_precision',
+                  'precision',
+                  'recall',
+                  'f1',
+                  'roc_auc']
 
+        for score in scores:
+            print("Tuning hyper-parameters for {0}\n".format(score))
+            clf=GridSearchCV(svm.LinearSVC(), parameters, cv=cv, scoring=score)
+            clf.fit(objects, classes)
+
+            print("Best parameters (with train set:\n")
+            print(clf.best_estimator_)
+            print("Grid scores (with train set):\n")
+            for params, mean_score, scores in clf.grid_scores_:
+                print("%0.5f (+/-%0.05f) for %r"
+                      % (mean_score, scores.std() / 2, params))
+            print("Detailed classification report:\n")
+            print("The model is trained on the full train set.\n")
+            print("The scores are computed on the full validation set.\n")
+            print("\n")
+            real_classes, pred_classes = val_classes, clf.predict(val_objects)
+            return classification_report(real_classes, pred_classes)
 
 #Читаем все необходимые данные
-train_data_reader = DataMaker(train_data_path)
+train_data_reader = DataReader(train_data_path)
 classes = train_data_reader.get_classes()
 objects = train_data_reader.get_objects()
 
@@ -103,14 +107,6 @@ clf = svm.LinearSVC()
 #print("error percentage (underfitting check)\n:{0}%".format((1.0-clf.score(objects, classes))*100.))
 #print("error percentage (overfitting check)\n:{0}%".format((1.0-clf.score(test_objects, test_classes))*100.))
 
-# tuned parameters
-intercept_scaling=[i for i in range (1, 10)]
-tol = [0.001,0.00001]#,0.00001,0.00001]
-parameters = [{'C':C,
-              'class_weight':['auto',None],
-              'intercept_scaling':intercept_scaling,
-              'tol':tol,
-              'dual':[False,True]}]
 
 
 
