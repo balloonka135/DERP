@@ -8,14 +8,7 @@ import config
 import picture_iterator as p_iter
 
 import collections
-EMOTIONS = {'Страх': 0,
-            'Радость': 1,
-            'Печаль': 2,
-            'Гнев': 3,
-            'Удивление': 4,
-            'Отвращение': 5,
-            'Удовольствие': 6,
-            'Нейтральный': 7}
+
 EMOTION_KEYS = {config.KEY_CODE_0: EMOTIONS['Страх'],#ord('0'): 0, #1 - страх
                 config.KEY_CODE_1: EMOTIONS['Радость'],#ord('1'): 1, #2 - радость
                 config.KEY_CODE_2: EMOTIONS['Печаль'],#ord('2'): 2, #3 - печаль

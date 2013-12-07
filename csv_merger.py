@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # coding=utf-8
 
-import csvviewer
+import picture_iterator as pit
 import csv
 import itertools
 import math
@@ -82,8 +82,9 @@ def csv_merger(path_to_results = "../"):
     with open(join(path_to_results,'merged_data.csv'),"w") as merged_data:
         with open(join(path_to_results,"merged.csv"),'r') as merged_results_file:
             emotions_iterator = csv.DictReader(merged_results_file, ('number', 'emotion' ))
-            dots = []
-            pic_iterator = csvviewer.picture_dot_iterator(path=join(path_to_results,'training.csv'),dots = dots)
+
+            pic_iterator = pit.PictureCollection(path=join(path_to_results,'training.csv'))
+            dots = pic_iterator.key_points
             try:
                 emotion = emotions_iterator.next()
                 pic = pic_iterator.next()

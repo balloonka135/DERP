@@ -5,18 +5,50 @@ import cv2
 import numpy as np
 import picture_iterator
 import csv_merger
+import data_reader
 
 
+class ErrorEvaluator:
+    def __init__(self):
+        self.true_pos = 0
+        self.true_neg = 0
+        self.false_pos = 0
+        self.false_neg = 0
 
-def train(data_path='Data/dataset/merged_data_train.csv', emotion=1):
+    def valuate(self, val_real, val_predict):
+        if val_real:
+            if val_predict:
+                self.true_pos += 1
+            else:
+                self.false_neg += 1
+        else:
+            if val_predict:
+                self.false_pos += 1
+            else:
+                self.true_neg += 1
+
+    def precision(self):
+        return float(self.true_pos) / (self.true_pos + self.false_pos)
+
+    def recall(self):
+        return float(self.true_pos) / (self.true_pos + self.false_neg)
+
+    def f_measure(self):
+        return 2*(self.precision()*self.recall())/(self.precision() + self.recall())
+
+
+def train_classifier(path_to_classifier_xml="Data/boost_emotions_classifier.xml",
+                     data_path='Data/dataset/merged_data_train.csv',
+                     emotion=1):
     data = []
     with open(data_path, 'r') as data_file:
         for data_line in data_file:
             data.append([float(value) for value in data_line.split(',')])
     data = np.float32(np.array(data))
+
     smile_responses = [1 if value == emotion else 0 for value in data[:, 1]]
     smile_responses = np.float32(np.array(smile_responses))
-    print data[:, 1].shape
+
     params = dict(max_depth=10,
                   boost_type=cv2.BOOST_LOGIT,
                   weak_count=1000,
@@ -27,53 +59,28 @@ def train(data_path='Data/dataset/merged_data_train.csv', emotion=1):
     booster = cv2.Boost(trainData=data[:, 2:], tflag=cv2.CV_ROW_SAMPLE, responses=smile_responses, params=params)
     booster.train(data[:, 2:], tflag=cv2.CV_ROW_SAMPLE, responses=smile_responses, params=params)
 
-    booster.save("Data/boost_emotions_classifier.xml")
+    booster.save(path_to_classifier_xml)
 
 
-def classify(path_to_classifier_xml="Data/boost_emotions_classifier.xml",
-             path_to_data="Data/dataset/merged_data_val.csv",
-             emotion=1):
-    params = dict(max_depth=10,
-              boost_type=cv2.BOOST_REAL,
-              weak_count=10,
-              weight_trim_rate=0.01,
-              use_surrogates=True,
-              priors=0)
+def test_classifier(path_to_classifier_xml="Data/boost_emotions_classifier.xml",
+                    path_to_data="Data/dataset/merged_data_val.csv",
+                    emotion=1):
     classifier = cv2.Boost()
     classifier.load(path_to_classifier_xml)
-    true_pos = 0.0
-    true_neg = 0.0
-    false_pos = 0.0
-    false_neg = 0.0
-    total_pic = 0.0
-    total_pos = 0.0
-    with open(path_to_data, 'r') as data_file:
-        for data_line in data_file:
-            data = [float(value) for value in data_line.split(',')]
-            emotion_real = 1 if data[1] == emotion else 0
 
-            emotion_predicted = classifier.predict(np.float32(np.array(data[2:])))
-            total_pic += 1
+    err_eval = ErrorEvaluator()
+    d_reader = data_reader.DataReader(path_to_data)
+    for line_num, data_line in enumerate(d_reader.get_objects()):
+        emotion_real = 1 if d_reader.get_classes()[line_num] == emotion else 0
+        emotion_predicted = classifier.predict(np.float32(np.array(data_line)))
+        err_eval.valuate(emotion_real, emotion_predicted)
 
-            if emotion_real == 1:
-                total_pos += 1
-                if emotion_predicted > 0:
-                    true_pos += 1
-                else:
-                    false_neg += 1
-            else:
-                if emotion_predicted > 0:
-                    false_pos += 1
-                else:
-                    true_neg += 1
-    precision = true_pos / (true_pos + false_pos)
-    recall = true_pos / total_pos
-    print ("total positives "),
-    print (total_pos)
-    print("Precision: " + str(precision))
-    print("Recall: " + str(recall))
-    print("F-measure: " + str(2*(precision*recall)/(precision+recall)))
-
+    print("total positives "),
+    print(err_eval.true_pos + err_eval.false_neg)
+    print("Precision: %s" % err_eval.precision())
+    print("Recall: %s" % err_eval.recall())
+    print("F-measure: %s" % err_eval.f_measure())
+    return err_eval
 
 
 def classify_and_show(path_to_classifier_xml="Data/boost_emotions_classifier.xml", show_only_good=False):
@@ -103,5 +110,5 @@ def classify_and_show(path_to_classifier_xml="Data/boost_emotions_classifier.xml
 
 
 if __name__ == "__main__":
-    train(emotion=1)
+    #train(emotion=1)
     classify(emotion = 1)

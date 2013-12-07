@@ -17,8 +17,8 @@ class FaceTracker:
         self.capture = cv2.VideoCapture(camera_index)
         #всякие штюки для meanShift
         self.term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
-        self.iters = 0;
-        self._max_iters = 100;
+        self.iters = 0
+        self._max_iters = 100
 
 
     def fps(self, fn):

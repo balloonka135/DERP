@@ -7,7 +7,7 @@ import cv2
 class FaceDetector:
     ESC_CODE = 27
 
-    def __init__(self, path='Data/lbpcascade_frontalface.xml'):
+    def __init__(self, path='Data/facedetector/lbpcascade_frontalface.xml'):
         self.classifier = cv2.CascadeClassifier(path)
         self.webcam = None
 
