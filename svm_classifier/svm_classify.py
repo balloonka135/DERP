@@ -3,20 +3,104 @@
 
 import cv2
 from sklearn import svm
-import numpy
+import numpy as np
 import cPickle as cpkl
-import config
-from data_reader import DataReader
 
-input_clf = open(config.SVM_CLF_DIR+"/trained_classifier.pkl", "rb")
-clf = cpkl.load(input_clf)
-reader = DataReader(config.TEST_DATA_PATH)
-test_objects = reader.get_objects()
-test_classes = reader.get_classes()
+import os, sys
+file_dir = os.path.dirname(__file__)
+abs_path = os.path.abspath(file_dir)
+sys.path.append(os.path.join(os.path.join(abs_path,".."),".."))
 
-for i in range(len(test_objects)):
-    print("real class:%d, predicted class:%d\n"%(test_classes[i], clf.predict(test_objects[i])))
+from DERP import data_reader 
+from DERP import config #pathes
+from DERP import csv_merger # for distances calculation
+from DERP import picture_iterator # for iteration and show picture
 
-print(clf.score(test_objects,test_classes))
 
-input_clf.close()
+class SVMClassifier(object):
+    def __init__(self): 
+        ## Из файла - объекта принимаем классификатор
+        self.input_ = open(os.path.join(config.SVM_CLF_DIR,"trained_classifier.pkl"), "rb")
+        self.clf = cpkl.load(self.input_)
+        
+    def __del__(self):
+        self.input_.close()
+
+    ##Метод show используется методом predict для отображения данных
+    ##Параметры по умолчанию переданы для возможности отображения тестовых данных
+    def __show(self, predicted_class, pic=None, pictures=None):
+        image = np.zeros((96, 192), dtype=np.uint8)
+        image[:, :96] = pictures[ int(pic['number']) ]['Image'][:, :] 
+        text = {
+                config.FEAR:"Fear",
+                config.JOY:"Joy",
+                config.SADNESS:"Sadness",
+                config.ANGER:"Anger",
+                config.SURPRISE:"Surprise",
+                config.DISGUST:"Disgust",
+                config.PLEASURE:"Pleasure",
+                config.NEUTRAL:"Neutral",
+                }.get(predicted_class[0], "Neutral")
+        
+        print(predicted_class)
+        ##Скорее всего нужно будет немного поменять для видеофрейма...
+        cv2.putText(img=image,
+                    text=text,
+                    org=(96,48),
+                    fontFace=cv2.FONT_HERSHEY_COMPLEX, 
+                    fontScale=0.8, 
+                    color=(255,255,255))
+        
+        cv2.imshow("DERP", image)
+        cv2.waitKey(-1) 
+    
+    ## Метод для рассчета расстояний, используется csv_merger.count_distances
+    def get_distances(self, keypoints):
+        self.keypoints = keypoints
+        object_ = csv_merger.count_distances(self.keypoints)
+        return object_ 
+    
+    ## Метод для парсинга ключевых точек тестовых данных
+    ## Возможно пригодиться для реальных данных с видео фрейма
+    def parse_keypoints(self, pic, knames):
+        keypoints = list()
+        for dot_type_x, dot_type_y in knames:
+            keypoints.append((pic[dot_type_x], pic[dot_type_y]))
+        return keypoints
+            
+    ## Метод для предсказания эмоции, передаются iterable pictures и картинка pic 
+    ## Необязательные парaметры необходимы для тестовых данных
+    def predict(self, object_, pic=None, pictures=None):
+        pred_class = self.clf.predict(object_)
+        self.__show(pred_class, pic, pictures)
+
+        return  pred_class
+
+
+if __name__ =='__main__':
+    
+    '''
+    #### test data
+    reader = data_reader.DataReader(config.TEST_DATA_PATH)
+    test_objects = reader.get_objects()
+    test_classes = reader.get_classes()
+    
+    ####
+    for i in range(len(test_objects)):
+        print("real class:%d, predicted class:%d\n"%(test_classes[i], clf.predict(test_objects[i])))
+    #####
+
+    print(clf.score(test_objects,test_classes))
+    '''
+    classifier = SVMClassifier()
+    
+    ####### тестовые данные
+    ## Получаем изображения из файла training.csv и значения точек для изображений
+    pictures = picture_iterator.PictureCollection(path="../../training.csv")
+    keypoint_names = pictures.key_points
+    #######
+
+    for pic in pictures:
+        kpoints = classifier.parse_keypoints(pic, keypoint_names) 
+        object_ = classifier.get_distances(kpoints) 
+        class_= classifier.predict(object_, pic=pic, pictures=pictures)

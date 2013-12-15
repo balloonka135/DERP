@@ -1,9 +1,6 @@
 #!/usr/bin/python
 #coding=utf-8
 
-#auhtor = sketchturner
-#dataset reader
-
 class DataReader(object):
     def __init__(self, path):
         self.path = path
