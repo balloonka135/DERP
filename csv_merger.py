@@ -29,20 +29,19 @@ def distance(dot1,dot2):
     return math.sqrt((float(dot1[0]) - float(dot2[0]))**2
               + (float(dot1[1]) - float(dot2[1]))**2)
 
+def norm(keypoint_data):
+    return distance((keypoint_data['left_eye_outer_corner_x'], keypoint_data['left_eye_outer_corner_y']),
+                    (keypoint_data['right_eye_outer_corner_x'], keypoint_data['right_eye_outer_corner_y']))
 
 def group_points(keypoint_data, keypoint_names):
-    points = [(keypoint_data['left_eye_outer_corner_x'], keypoint_data['left_eye_outer_corner_y']),
-              (keypoint_data['right_eye_outer_corner_x'], keypoint_data['right_eye_outer_corner_y'])]
+    points = []
     for keyp in keypoint_names:
-        if 'eye_outer_corner' in keyp[0]:
-            continue
         points.append((keypoint_data[keyp[0]], keypoint_data[keyp[1]]))
     return points
 
 
-def count_distances(points):
+def count_distances(points, norm):
     distances = []
-    norm = distance(points[0], points[1])
     for dot_idx, dot1 in enumerate(points[:-1]):
         for dot2 in points[dot_idx+1:]:
             distances.append((distance(dot1,dot2)/norm))
