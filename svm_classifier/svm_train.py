@@ -8,9 +8,14 @@ from sklearn import cross_validation as val
 import numpy
 import cPickle as cpkl
 import matplotlib
-from data_reader import DataReader
-import config
-import os
+
+import os, sys
+file_dir = os.path.dirname(__file__)
+abs_path = os.path.abspath(file_dir)
+sys.path.append(os.path.join(os.path.join(abs_path,".."),".."))
+
+from DERP import data_reader
+from DERP import config
 
 ## Главным классфикатором является классификатор clf
 ## для тестирования есть classifier (см. метод train)
@@ -27,8 +32,8 @@ class SVMTrainer(object):
             and hasattr(self, "Y_test"):
                 return [(self.X_train, self.X_val), (self.Y_train, self.Y_val)]
 
-        train_data_reader = DataReader(self.tpath)
-        val_data_reader = DataReader(self.vpath)
+        train_data_reader = data_reader.DataReader(self.tpath)
+        val_data_reader = data_reader.DataReader(self.vpath)
         self.X_train, self.X_val = train_data_reader.get_objects(), val_data_reader.get_objects()
         self.Y_train, self.Y_val = train_data_reader.get_classes(), val_data_reader.get_classes()
 
@@ -58,24 +63,27 @@ class SVMTrainer(object):
                   'f1',
                   'roc_auc']
 
-        for score in scores:
-            print("Tuning hyper-parameters for {0}\n".format(score))
-            self.clf=GridSearchCV(svm.LinearSVC(), parameters, cv=cv, scoring=score)
-            self.clf.fit(self.X_train, self.Y_train)
+        with open("evaluation_report.txt", "w") as ev: 
+            for score in scores:
+                ev.write("Tuning hyper-parameters for {0}\n".format(score))
+                self.clf=GridSearchCV(svm.LinearSVC(), parameters, cv=cv, scoring=score)
+                self.clf.fit(self.X_train, self.Y_train)
 
-            print("Best parameters (with train set):\n")
-            print(self.clf.best_estimator_)
-            print("Grid scores (with train set):\n")
-            for params, mean_score, scores in self.clf.grid_scores_:
-                print("%0.5f (+/-%0.05f) for %r"
-                      % (mean_score, scores.std() / 2, params))
-            print("Detailed classification report:\n")
-            print("The model is trained on the full train set.\n")
-            print("The scores are computed on the full validation set.\n")
-            print("\n")
-            real_classes, pred_classes = self.Y_val, self.clf.predict(self.X_val)
-            self.classification_rep = classification_report(real_classes, pred_classes)
-            return self.classification_rep
+                ev.write("Best parameters (with train set):\n")
+                ev.write(self.clf.best_estimator_)
+                ev.write("Grid scores (with train set):\n")
+                for params, mean_score, scores in self.clf.grid_scores_:
+                    ev.write("%0.5f (+/-%0.05f) for %r"
+                            % (mean_score, scores.std() / 2, params))
+                ev.write("Detailed classification report:\n")
+                ev.write("The model is trained on the full train set.\n")
+                ev.write("The scores are computed on the full validation set.\n")
+                ev.write("\n")
+                real_classes, pred_classes = self.Y_val, self.clf.predict(self.X_val)
+                self.classification_rep = classification_report(real_classes, pred_classes)
+                ev.write(self.classification_rep)
+        
+        return self.classification_rep
 
     #Этот метод будет не нужен в последствии
     #Так как после подгонки параметров классификатор будет натренирован
