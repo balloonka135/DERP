@@ -41,17 +41,17 @@ class SVMTrainer(object):
 
     ##оптимизация классификатора
     def eval_estimator(self):
-        if hasattr(self, "classification_rep"):
-            return self.classification_rep
+        if hasattr(self, "clf"):
+            return self.clf
 
         ### tuned parameters
         C = [i for i in range(1, 100)]
-        intercept_scaling=[i for i in range (1, 10)]
+        intercept_scaling=[i for i in range (1, 5)]
         tol = [0.001, 0.00001, 0.00001, 0.00001]
-        parameters = [{'C':self.C,
+        parameters = [{'C':C,
                        'class_weight':['auto', None],
                        'intercept_scaling':intercept_scaling,
-                       'tol':self.tol,
+                       'tol':tol,
                        'dual':[False, True]}]
         cv=5
 
@@ -63,27 +63,28 @@ class SVMTrainer(object):
                   'f1',
                   'roc_auc']
 
-        with open("evaluation_report.txt", "w") as ev: 
-            for score in scores:
-                ev.write("Tuning hyper-parameters for {0}\n".format(score))
-                self.clf=GridSearchCV(svm.LinearSVC(), parameters, cv=cv, scoring=score)
-                self.clf.fit(self.X_train, self.Y_train)
+        ev = open("evaluation_report.txt", "wb")
+        for score in scores:
+            ev.write("Tuning hyper-parameters for {0}\n".format(score))
+            self.clf=GridSearchCV(svm.LinearSVC(), parameters, cv=cv, scoring=score)
+            self.clf.fit(self.X_train, self.Y_train)
 
-                ev.write("Best parameters (with train set):\n")
-                ev.write(self.clf.best_estimator_)
-                ev.write("Grid scores (with train set):\n")
-                for params, mean_score, scores in self.clf.grid_scores_:
-                    ev.write("%0.5f (+/-%0.05f) for %r"
-                            % (mean_score, scores.std() / 2, params))
-                ev.write("Detailed classification report:\n")
-                ev.write("The model is trained on the full train set.\n")
-                ev.write("The scores are computed on the full validation set.\n")
-                ev.write("\n")
-                real_classes, pred_classes = self.Y_val, self.clf.predict(self.X_val)
-                self.classification_rep = classification_report(real_classes, pred_classes)
-                ev.write(self.classification_rep)
-        
-        return self.classification_rep
+            ev.write("Best parameters (with train set):\n")
+            ev.write(self.clf.best_estimator_)
+            ev.write("Grid scores (with train set):\n")
+            for params, mean_score, scores in self.clf.grid_scores_:
+                ev.write("%0.5f (+/-%0.05f) for %r"
+                        % (mean_score, scores.std() / 2, params))
+            ev.write("Detailed classification report:\n")
+            ev.write("The model is trained on the full train set.\n")
+            ev.write("The scores are computed on the full validation set.\n")
+            ev.write("\n")
+            real_classes, pred_classes = self.Y_val, self.clf.predict(self.X_val)
+            self.classification_rep = classification_report(real_classes, pred_classes)
+            ev.write(self.classification_rep)
+
+        ev.close()
+        return self.clf
 
     #Этот метод будет не нужен в последствии
     #Так как после подгонки параметров классификатор будет натренирован
@@ -92,35 +93,53 @@ class SVMTrainer(object):
             return self.classifier
         ## Параметры получены ранее после оптимизации
         self.classifier = svm.LinearSVC(C=7,
-                                   class_weight=None,
-                                   dual=True,
-                                   fit_intercept=True,
-                                   intercept_scaling=1,
-                                   loss='l2',
-                                   multi_class='ovr',
-                                   penalty='l2',
-                                   random_state=None,
-                                   tol=0.0001,
-                                   verbose=0)
+                                    class_weight=None,
+                                    dual=True,
+                                    fit_intercept=True,
+                                    intercept_scaling=1,
+                                    loss='l2',
+                                    multi_class='ovr',
+                                    penalty='l2',
+                                    random_state=None,
+                                    tol=0.0001,
+                                    verbose=0)
+
         self.classifier.fit(self.X_train,self.Y_train)
+        print("trained\n")
         return self.classifier
 
-    def dump_classifier(self):
-         ## после оптимизации параметров поменять на
-        ##if (hasattr(self,clf)):
-        if (hasattr(self,'classifier')):
-            if not os.path.exists(config.SVM_CLF_DIR):
-	            os.makedirs(config.SVM_CLF_DIR)
+    def binary_train(self, des_class_=config.JOY):
+        if hasattr(self, 'bin_classifier'):
+            return self.bin_classifier
+        ## Параметры получены ранее после оптимизации
+        self.bin_classifier = svm.LinearSVC(C=7,
+                                    class_weight=None,
+                                    dual=True,
+                                    fit_intercept=True,
+                                    intercept_scaling=1,
+                                    loss='l2',
+                                    multi_class='ovr',
+                                    penalty='l2',
+                                    random_state=None,
+                                    tol=0.0001,
+                                    verbose=0)
 
-            output_clf = open(config.SVM_CLF_DIR+"/trained_classifier.pkl", "wb")
-            cpkl.dump(self.classifier, output_clf)
-            output_clf.close()
-        else:
-            print("dump_classifier : train classifier first\n")
+        self.bin_Y_train = [0 if i is not des_class_ else des_class_ for i in self.Y_train]
+        self.bin_classifier.fit(self.X_train,self.bin_Y_train)
+        print("trained\n")
+        return self.bin_classifier
 
-if __name__ == '__main__':
+    @staticmethod
+    def dump_classifier(classifier, name):
+        if not os.path.exists(config.SVM_CLF_DIR):
+            os.makedirs(config.SVM_CLF_DIR)
+
+        output_clf = open(config.SVM_CLF_DIR+"/"+name, "wb")
+        cpkl.dump(classifier, output_clf)
+        output_clf.close()
+
+if __name__ == "__main__":
     svm_obj = SVMTrainer(config.TRAIN_DATA_PATH, config.VAL_DATA_PATH)
     svm_obj.read_data()
-    svm_obj.train()
-    svm_obj.dump_classifier()
+    svm_obj.dump_classifier(svm_obj.binary_train(),"bin_trained_.pkl")
 
