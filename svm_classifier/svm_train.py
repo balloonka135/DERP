@@ -18,8 +18,6 @@ from DERP import data_reader
 from DERP import config
 
 ## Главным классфикатором является классификатор clf
-## для тестирования есть classifier (см. метод train)
-
 class SVMTrainer(object):
     def __init__(self, train_data_path, val_data_path):
         self.tpath = train_data_path
@@ -86,8 +84,6 @@ class SVMTrainer(object):
         ev.close()
         return self.clf
 
-    #Этот метод будет не нужен в последствии
-    #Так как после подгонки параметров классификатор будет натренирован
     def train(self):
         if hasattr(self, 'classifier'):
             return self.classifier
