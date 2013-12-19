@@ -4,3 +4,6 @@ all:
 
 install:
 	python lib/setup.py install
+
+clean:
+	rm -rf build
