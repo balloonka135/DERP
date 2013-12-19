@@ -31,7 +31,8 @@ class SVMClassifier(object):
     def __show(self, predicted_class, pic=None, pictures=None):
         image = np.zeros((96, 192), dtype=np.uint8)
         image[:, :96] = pictures[ int(pic['number']) ]['Image'][:, :] 
-        text = {
+
+        text_predicted = {
                 config.FEAR:"Fear",
                 config.JOY:"Joy",
                 config.SADNESS:"Sadness",
@@ -41,23 +42,33 @@ class SVMClassifier(object):
                 config.PLEASURE:"Pleasure",
                 config.NEUTRAL:"Neutral",
                 }.get(predicted_class[0], "Neutral")
-        
-        print(predicted_class)
+
+
         ##Скорее всего нужно будет немного поменять для видеофрейма...
         cv2.putText(img=image,
-                    text=text,
+                    text=text_predicted,
                     org=(96,48),
-                    fontFace=cv2.FONT_HERSHEY_COMPLEX, 
-                    fontScale=0.8, 
+                    fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=1.5,
                     color=(255,255,255))
-        
+        '''
+        cv2.putText(img=image,
+                    text=str(pic['number']),
+                    org=(96,72),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=0.9,
+                    color=(255,255,255))
+        '''
+
         cv2.imshow("DERP", image)
-        cv2.waitKey(-1) 
+        c = cv2.waitKey(-1)
+        if c == config.KEY_CODE_ESC:
+            raise SystemExit
     
     ## Метод для рассчета расстояний, используется csv_merger.count_distances
-    def get_distances(self, keypoints):
+    def get_distances(self, keypoints, norm=None):
         self.keypoints = keypoints
-        object_ = csv_merger.count_distances(self.keypoints)
+        object_ = csv_merger.count_distances(self.keypoints, norm)
         return object_ 
     
     ## Метод для парсинга ключевых точек тестовых данных
@@ -73,34 +84,21 @@ class SVMClassifier(object):
     def predict(self, object_, pic=None, pictures=None):
         pred_class = self.clf.predict(object_)
         self.__show(pred_class, pic, pictures)
+        return pred_class
 
-        return  pred_class
-
-
-if __name__ =='__main__':
+if __name__ == '__main__':
     
-    '''
-    #### test data
-    reader = data_reader.DataReader(config.TEST_DATA_PATH)
-    test_objects = reader.get_objects()
-    test_classes = reader.get_classes()
-    
-    ####
-    for i in range(len(test_objects)):
-        print("real class:%d, predicted class:%d\n"%(test_classes[i], clf.predict(test_objects[i])))
-    #####
-
-    print(clf.score(test_objects,test_classes))
-    '''
     classifier = SVMClassifier()
-    
-    ####### тестовые данные
-    ## Получаем изображения из файла training.csv и значения точек для изображений
+
+    ####### тестовые данные для интерактивного просмотра
+    ## Получаем изображения из файла training.csv и значения типов точек для изображений
+
     pictures = picture_iterator.PictureCollection(path="../../training.csv")
     keypoint_names = pictures.key_points
-    #######
 
     for pic in pictures:
-        kpoints = classifier.parse_keypoints(pic, keypoint_names) 
-        object_ = classifier.get_distances(kpoints) 
-        class_= classifier.predict(object_, pic=pic, pictures=pictures)
+        kpoints = classifier.parse_keypoints(pic, keypoint_names)
+        object_ = classifier.get_distances(kpoints, csv_merger.norm(pic))
+        class_ = classifier.predict(object_,
+                                   pic=pic,
+                                   pictures=pictures)
