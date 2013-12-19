@@ -43,8 +43,9 @@ class FaceDetector:
         return scaled_faces
 
     @staticmethod
-    def __debug(image, faces_description):
-        image = helpers.draw_bounding_boxes(image, faces_description)
+    def __debug(image, face_rects):
+        for face_rect in face_rects:
+            image = helpers.draw_bounding_boxes(image, face_rect)
         cv2.imshow('face capture', image)
 
         pressed = cv2.waitKey(10)
@@ -61,15 +62,15 @@ class FaceDetector:
         retval, image = self.webcam.read()
         while retval:
             image = cv2.flip(image, 1)
-            faces_description = self.find_faces(image)
+            face_rects = self.find_faces(image)
 
             if return_images:
-                yield (image, helpers.cut_faces_from_images(image, faces_description))
+                yield (image, helpers.cut_faces_from_images(image, face_rects))
             else:
-                yield (image, faces_description)
+                yield (image, face_rects)
 
             if debug:
-                self.__debug(image, faces_description)
+                self.__debug(image, face_rects)
 
             retval, image = self.webcam.read()
 
