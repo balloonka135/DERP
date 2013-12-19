@@ -6,3 +6,5 @@ result.csv
 config.py
 *.pyc
 Data/dataset/moar.csv
+lib/asmlib-opencv
+build
